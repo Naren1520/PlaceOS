@@ -176,9 +176,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const login = async (email: string, password?: string) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: password || 'admin123' })
@@ -233,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const addUser = async (userData: Omit<User, 'id'>, password?: string) => {
     try {
       const token = localStorage.getItem('placeos-token');
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch(`${API_URL}/api/admin/users`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
