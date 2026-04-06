@@ -38,6 +38,10 @@ export function StudentProfile() {
   const [newSkill, setNewSkill] = useState('');
   const [githubScore, setGithubScore] = useState(student?.githubScore || 0);
 
+  const { analyzeProfileWithAI } = useAuth();
+  const [aiAnalysis, setAiAnalysis] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   useEffect(() => {
     if (student) {
       setGithub(student.github);
@@ -100,12 +104,38 @@ export function StudentProfile() {
     toast.success('Profile updated successfully!');
   };
 
+  const handleAIAnalyze = async () => {
+    if (!user?.id) return;
+    setIsAnalyzing(true);
+    setAiAnalysis('');
+    try {
+      const responseText = await analyzeProfileWithAI(user.id);
+      setAiAnalysis(responseText);
+      toast.success('AI Analysis complete');
+    } catch (e) {
+      toast.error('Failed to analyze profile');
+    }
+    setIsAnalyzing(false);
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1>Student Profile</h1>
-        <p className="opacity-70">Manage your skills and information</p>
+      <div className="flex justify-between">
+        <div>
+          <h1>Student Profile</h1>
+          <p className="opacity-70">Manage your skills and information</p>
+        </div>
+        <Button variant="outline" onClick={handleAIAnalyze} disabled={isAnalyzing}>
+          {isAnalyzing ? 'Analyzing with AI...' : 'Analyze with Groq AI'}
+        </Button>
       </div>
+
+      {aiAnalysis && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+          <h2 className="text-xl font-bold text-orange-900 mb-3 flex items-center">Groq AI Insights</h2>
+          <p className="text-orange-950 whitespace-pre-wrap">{aiAnalysis}</p>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Resume Upload & Skill Extraction */}

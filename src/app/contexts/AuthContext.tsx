@@ -66,6 +66,7 @@ interface AuthContextType {
   toggleFreeze: () => void;
   calculateMatchScore: (studentSkills: string[], requiredSkills: string[]) => number;
   getMissingSkills: (studentSkills: string[], requiredSkills: string[]) => string[];
+  analyzeProfileWithAI: (studentId: string) => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -309,6 +310,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setJobs([...jobs, newJob]);
   };
 
+  const analyzeProfileWithAI = async (studentId: string): Promise<string> => {
+    try {
+      const student = getStudent(studentId);
+      const studentUser = users.find(u => u.id === studentId);
+      
+      if (!student || !studentUser) throw new Error('Student not found');
+      
+      const token = localStorage.getItem('placeos-token');
+      const response = await fetch(`${API_URL}/api/ai/analyze-student`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          skills: student.skills,
+          github: student.github,
+          name: studentUser.name
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.analysis;
+      }
+      return 'Could not retrieve AI analysis at this time.';
+    } catch (error) {
+      console.error('AI Analysis error:', error);
+      return 'Error analyzing profile with AI.';
+    }
+  };
+
   const calculateMatchScore = (studentSkills: string[], requiredSkills: string[]): number => {
     if (requiredSkills.length === 0) return 0;
     
@@ -399,6 +432,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toggleFreeze,
         calculateMatchScore,
         getMissingSkills,
+        analyzeProfileWithAI
       }}
     >
       {children}
